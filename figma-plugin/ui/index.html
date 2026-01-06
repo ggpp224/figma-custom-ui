@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Component Library Viewer</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    .container {
+      display: flex;
+      height: 100vh;
+      flex-direction: column;
+    }
+
+    .header {
+      padding: 12px 16px;
+      background: #f5f5f5;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header h1 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .mode-switcher {
+      display: flex;
+      gap: 8px;
+    }
+
+    .mode-btn {
+      padding: 6px 12px;
+      border: 1px solid #d0d0d0;
+      background: white;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .mode-btn.active {
+      background: #18a0fb;
+      color: white;
+      border-color: #18a0fb;
+    }
+
+    .content {
+      flex: 1;
+      position: relative;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .react-ui {
+      display: none;
+      width: 100%;
+      height: 100%;
+    }
+
+    .react-ui.active {
+      display: block;
+    }
+
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 14px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>组件库查看器</h1>
+      <div class="mode-switcher">
+        <button class="mode-btn active" id="storybook-mode">Storybook</button>
+        <button class="mode-btn" id="component-mode">组件库</button>
+      </div>
+    </div>
+    <div class="content">
+      <!-- Storybook iframe 模式 -->
+      <iframe 
+        id="storybook-frame"
+        src="http://localhost:6006"
+        allowfullscreen
+      ></iframe>
+
+      <!-- React 组件模式 -->
+      <div id="react-root" class="react-ui"></div>
+
+      <div class="loading" id="loading">加载中...</div>
+    </div>
+  </div>
+
+  <script type="module" src="./index.tsx"></script>
+  <script>
+    // AI 生成 By Peng.Guo
+    const storybookFrame = document.getElementById('storybook-frame');
+    const reactRoot = document.getElementById('react-root');
+    const loading = document.getElementById('loading');
+    const storybookBtn = document.getElementById('storybook-mode');
+    const componentBtn = document.getElementById('component-mode');
+
+    let currentMode = 'storybook';
+    let reactUILoaded = false;
+
+    // 切换模式
+    function switchMode(mode) {
+      currentMode = mode;
+      
+      if (mode === 'storybook') {
+        storybookBtn.classList.add('active');
+        componentBtn.classList.remove('active');
+        storybookFrame.style.display = 'block';
+        reactRoot.classList.remove('active');
+      } else {
+        storybookBtn.classList.remove('active');
+        componentBtn.classList.add('active');
+        storybookFrame.style.display = 'none';
+        reactRoot.classList.add('active');
+        
+        // 调用初始化函数（如果存在）
+        if (window.initComponentLibraryUI && !reactUILoaded) {
+          window.initComponentLibraryUI();
+          reactUILoaded = true;
+          loading.style.display = 'none';
+        } else if (window.__componentLibraryReady) {
+          loading.style.display = 'none';
+        }
+      }
+    }
+
+    // 按钮事件
+    storybookBtn.addEventListener('click', () => switchMode('storybook'));
+    componentBtn.addEventListener('click', () => switchMode('component'));
+
+    // 监听来自 Storybook iframe 的消息
+    window.addEventListener('message', (event) => {
+      if (event.origin !== 'http://localhost:6006' && 
+          event.origin !== 'https://localhost:6006') {
+        return;
+      }
+
+      if (event.data.type === 'component-selected') {
+        parent.postMessage({
+          pluginMessage: {
+            type: 'component-selected',
+            componentName: event.data.componentName,
+          },
+        }, '*');
+      }
+    });
+
+    // 监听来自 Figma Plugin 的消息
+    window.addEventListener('message', (event) => {
+      if (event.data.pluginMessage) {
+        const msg = event.data.pluginMessage;
+        
+        if (msg.type === 'success') {
+          console.log('成功:', msg.message);
+        } else if (msg.type === 'error') {
+          console.error('错误:', msg.message);
+        }
+      }
+    });
+
+    // 通知 Plugin 已就绪
+    parent.postMessage({ pluginMessage: { type: 'ready' } }, '*');
+
+    // Storybook iframe 加载完成
+    storybookFrame.addEventListener('load', () => {
+      loading.style.display = 'none';
+    });
+
+    // Storybook iframe 加载错误
+    storybookFrame.addEventListener('error', () => {
+      loading.textContent = '无法连接到 Storybook (localhost:6006)，请确保 Storybook 正在运行';
+    });
+  </script>
+</body>
+</html>
+

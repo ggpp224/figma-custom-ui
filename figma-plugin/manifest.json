@@ -1,0 +1,21 @@
+{
+  "name": "Component Library Viewer",
+  "id": "component-library-viewer",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui-bundled.html",
+  "editorType": ["figma"],
+  "networkAccess": {
+    "devAllowedDomains": [
+      "http://localhost:6006",
+      "https://cdn.jsdelivr.net"
+    ],
+    "allowedDomains": [
+      "https://*.chromatic.com",
+      "https://cdn.jsdelivr.net"
+    ],
+    "reasoning": "需要访问本地 Storybook 服务器进行开发（端口 6006），访问 Chromatic 用于生产环境的 Storybook 预览，以及访问 jsdelivr CDN 加载 antd 样式"
+  },
+  "documentAccess": "dynamic-page"
+}
+
