@@ -11,7 +11,12 @@ const preview: Preview = {
         date: /Date$/i,
       },
     },
+    docs: {
+      toc: true,
+    },
   },
+  // 全局标签定义
+  tags: ['autodocs'],
 };
 
 export default preview;

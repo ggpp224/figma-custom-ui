@@ -5,6 +5,19 @@
   "main": "code.js",
   "ui": "ui-bundled.html",
   "editorType": ["figma"],
+  "menu": [
+    {
+      "name": "打开组件库",
+      "command": "open"
+    },
+    {
+      "separator": true
+    },
+    {
+      "name": "更新 Button 样式",
+      "command": "update-button-style"
+    }
+  ],
   "networkAccess": {
     "devAllowedDomains": [
       "http://localhost:6006",
